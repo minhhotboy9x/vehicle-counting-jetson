@@ -8,7 +8,7 @@ import torch
 from collections import OrderedDict, namedtuple
 # from config import FRAME_WIDTH, FRAME_HEIGHT
 from imread_from_url import imread_from_url
-from utils import *
+from model.utils import *
 
 class DetectionModel:
     def __init__(self, file_engine, conf_thres=0.7, iou_thres=0.5):
@@ -72,7 +72,6 @@ class DetectionModel:
         input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
         input_tensor = np.ascontiguousarray(input_tensor)
         input_tensor = torch.from_numpy(input_tensor).to(self.device)
-        print(input_tensor[0, 0, 0, 0])
         return input_tensor
     
     def __call__(self, image):
@@ -110,7 +109,6 @@ class DetectionModel:
         # print(predictions.shape)
         # Filter out object confidence scores below threshold
         scores = np.max(predictions[:, 4:], axis=1)
-        print(scores.max())
         predictions = predictions[scores > self.conf_threshold, :]
         scores = scores[scores > self.conf_threshold]
 
@@ -163,7 +161,20 @@ class DetectionModel:
                 cap = cv2.VideoCapture(video_path)
             else:
                 # Perform object detection
-                frame = cv2.resize(frame, (640, 640))
+                frame = cv2.resize(frame, (self.input_width, self.input_height))
+                boxes, scores, class_ids = self(frame)
+                if len(boxes):
+                    boxes = boxes.tolist()
+                    scores = scores.tolist()
+                    class_ids = class_ids.tolist()
+                json_data = {
+                    'frame': frame.tolist(),
+                    'boxes': boxes,
+                    'scores': scores,
+                    'class_ids': class_ids,
+                }
+                yield json.dumps(json_data)
+        cap.release()
                 
 
 if __name__ == '__main__':
@@ -171,8 +182,4 @@ if __name__ == '__main__':
     img_url = "https://live.staticflickr.com/13/19041780_d6fd803de0_3k.jpg"
     img = imread_from_url(img_url)
     
-    model(img)
-    combined_img = model.draw_detections(img)
-    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
-    cv2.imshow("Output", combined_img)
-    cv2.waitKey(0)
+    model.gen_detection(1)
