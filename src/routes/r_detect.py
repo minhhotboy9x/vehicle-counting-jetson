@@ -10,4 +10,4 @@ detection = DetectionModel('model/trt_win/yolov8n_win.engine')
 
 @detect_bp.route('/detecting/<int:cam_id>')
 def stream_cam(cam_id):
-    return Response(detection.gen_detection(cam_id), mimetype='application/json')
+    return Response(detection.gen_detection(cam_id), mimetype='multipart/x-mixed-replace; boundary=frame')

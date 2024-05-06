@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 # import torch
 import json
+import base64 
 import torch
 from collections import OrderedDict, namedtuple
 # from config import FRAME_WIDTH, FRAME_HEIGHT
@@ -155,6 +156,8 @@ class DetectionModel:
     def gen_detection(self, cam_id):
         video_path = f'./imgs/{cam_id}.mp4'
         cap = cv2.VideoCapture(video_path)
+        boundary = "--frame"
+
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -162,18 +165,26 @@ class DetectionModel:
             else:
                 # Perform object detection
                 frame = cv2.resize(frame, (self.input_width, self.input_height))
-                boxes, scores, class_ids = self(frame)
+                boxes, scores, class_ids = self(frame) # Bạn cần định nghĩa hàm self(frame) để thực hiện phát hiện đối tượng
                 if len(boxes):
                     boxes = boxes.tolist()
                     scores = scores.tolist()
                     class_ids = class_ids.tolist()
-                json_data = {
-                    'frame': frame.tolist(),
+
+                # Convert frame to JPEG format
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame_data = base64.b64encode(buffer).decode('utf-8')
+                
+                json_data = json.dumps({
+                    'img': frame_data,
                     'boxes': boxes,
                     'scores': scores,
                     'class_ids': class_ids,
-                }
-                yield json.dumps(json_data)
+                })
+                # print(len(json_data.encode('utf-8')))
+                # print(json_data.encode('utf-8'))
+                yield (b'--frame\r\n'
+                    b'Content-Type: application/json\r\n\r\n' + json_data.encode('utf-8') + b'endpart' + b'\r\n')
         cap.release()
                 
 
