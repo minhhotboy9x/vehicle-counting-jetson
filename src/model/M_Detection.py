@@ -7,12 +7,12 @@ import json
 import base64 
 import torch
 from collections import OrderedDict, namedtuple
-# from config import FRAME_WIDTH, FRAME_HEIGHT
+from config import FRAME_WIDTH, FRAME_HEIGHT
 from imread_from_url import imread_from_url
 from model.utils import *
 
 class DetectionModel:
-    def __init__(self, file_engine, conf_thres=0.7, iou_thres=0.5):
+    def __init__(self, file_engine, conf_thres=0.1, iou_thres=0.5):
         self.device = torch.device("cuda:0")
         self.conf_threshold = conf_thres
         self.iou_threshold = iou_thres
@@ -156,7 +156,6 @@ class DetectionModel:
     def gen_detection(self, cam_id):
         video_path = f'./imgs/{cam_id}.mp4'
         cap = cv2.VideoCapture(video_path)
-        boundary = "--frame"
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -164,7 +163,7 @@ class DetectionModel:
                 cap = cv2.VideoCapture(video_path)
             else:
                 # Perform object detection
-                frame = cv2.resize(frame, (self.input_width, self.input_height))
+                frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
                 boxes, scores, class_ids = self(frame) # Bạn cần định nghĩa hàm self(frame) để thực hiện phát hiện đối tượng
                 if len(boxes):
                     boxes = boxes.tolist()
