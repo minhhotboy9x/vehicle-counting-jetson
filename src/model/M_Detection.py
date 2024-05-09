@@ -165,6 +165,7 @@ class DetectionModel:
                 # Perform object detection
                 frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
                 boxes, scores, class_ids = self(frame) # Bạn cần định nghĩa hàm self(frame) để thực hiện phát hiện đối tượng
+                
                 if len(boxes):
                     boxes = boxes.tolist()
                     scores = scores.tolist()
