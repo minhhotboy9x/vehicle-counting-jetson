@@ -105,14 +105,14 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
     return det_img
 
 
-def draw_box( image: np.ndarray, box: np.ndarray, color: tuple[int, int, int] = (0, 0, 255),
-             thickness: int = 2) -> np.ndarray:
+def draw_box( image: np.ndarray, box: np.ndarray, color = (0, 0, 255),
+             thickness = 2):
     x1, y1, x2, y2 = box.astype(int)
     return cv2.rectangle(image, (x1, y1), (x2, y2), color, thickness)
 
 
-def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple[int, int, int] = (0, 0, 255),
-              font_size: float = 0.001, text_thickness: int = 2) -> np.ndarray:
+def draw_text(image: np.ndarray, text: str, box: np.ndarray, color = (0, 0, 255),
+              font_size: float = 0.001, text_thickness = 2):
     x1, y1, x2, y2 = box.astype(int)
     (tw, th), _ = cv2.getTextSize(text=text, fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                   fontScale=font_size, thickness=text_thickness)
@@ -123,7 +123,7 @@ def draw_text(image: np.ndarray, text: str, box: np.ndarray, color: tuple[int, i
 
     return cv2.putText(image, text, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 255, 255), text_thickness, cv2.LINE_AA)
 
-def draw_masks(image: np.ndarray, boxes: np.ndarray, classes: np.ndarray, mask_alpha: float = 0.3) -> np.ndarray:
+def draw_masks(image: np.ndarray, boxes: np.ndarray, classes: np.ndarray, mask_alpha: float = 0.3):
     mask_img = image.copy()
 
     # Draw bounding boxes and labels of detections
