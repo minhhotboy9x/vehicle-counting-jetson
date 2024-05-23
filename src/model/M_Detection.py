@@ -12,7 +12,7 @@ from imread_from_url import imread_from_url
 from model.utils import *
 
 class DetectionModel:
-    def __init__(self, file_engine, conf_thres=0.1, iou_thres=0.5):
+    def __init__(self, file_engine, conf_thres=0.4, iou_thres=0.5):
         self.device = torch.device("cuda:0")
         self.conf_threshold = conf_thres
         self.iou_threshold = iou_thres
@@ -91,6 +91,7 @@ class DetectionModel:
         self.binding_addrs["images"] = int(im.data_ptr())
         self.context.execute_v2(list(self.binding_addrs.values()))
         y = [self.bindings[x].data for x in sorted(self.output_names)] # raw relative box
+        
         return y
     
     def detect_objects(self, image):
@@ -156,7 +157,6 @@ class DetectionModel:
     def gen_detection(self, cam_id):
         video_path = f'./imgs/{cam_id}.mp4'
         cap = cv2.VideoCapture(video_path)
-
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -183,13 +183,14 @@ class DetectionModel:
                 })
                 # print(len(json_data.encode('utf-8')))
                 # print(json_data.encode('utf-8'))
-                yield (b'--frame\r\n'
-                    b'Content-Type: application/json\r\n\r\n' + json_data.encode('utf-8') + b'endpart' + b'\r\n')
+                # yield (b'--frame\r\n'
+                #     b'Content-Type: application/json\r\n\r\n' + json_data.encode('utf-8') + b'endpart' + b'\r\n')
+                yield f"data: {json_data}\n\n"
         cap.release()
                 
 
 if __name__ == '__main__':
-    model = DetectionModel("model/trt_win/yolov8n_win.engine")
+    model = DetectionModel("model/trt_jetson/yolov8n_relu_FP16.engine")
     img_url = "https://live.staticflickr.com/13/19041780_d6fd803de0_3k.jpg"
     img = imread_from_url(img_url)
     

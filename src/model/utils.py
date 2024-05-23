@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import warnings
 
 class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
                'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
@@ -53,33 +54,49 @@ def multiclass_nms(boxes, scores, class_ids, iou_threshold):
     return keep_boxes
 
 def compute_iou(box, boxes):
-    # Compute xmin, ymin, xmax, ymax for both boxes
-    xmin = np.maximum(box[0], boxes[:, 0])
-    ymin = np.maximum(box[1], boxes[:, 1])
-    xmax = np.minimum(box[2], boxes[:, 2])
-    ymax = np.minimum(box[3], boxes[:, 3])
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            
+            # Compute intersection area with safeguards against negative values
+            intersection_area = np.maximum(1e-8, np.minimum(box[2], boxes[:, 2]) - np.maximum(box[0], boxes[:, 0])) * \
+                                np.maximum(1e-8, np.minimum(box[3], boxes[:, 3]) - np.maximum(box[1], boxes[:, 1]))
 
-    # Compute intersection area
-    intersection_area = np.maximum(0, xmax - xmin) * np.maximum(0, ymax - ymin)
+            # Compute union area with handling of potential zero areas
+            box_area = np.maximum(1e-8, box[2] - box[0]) * np.maximum(1e-8, box[3] - box[1])
+            boxes_area = np.maximum(1e-8, (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]))
+            union_area = box_area + boxes_area - intersection_area
 
-    # Compute union area
-    box_area = (box[2] - box[0]) * (box[3] - box[1])
-    boxes_area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-    union_area = box_area + boxes_area - intersection_area
+            # Prevent division by zero and handle potential NaN values effectively
+            iou = np.where(union_area > 1e-8, intersection_area / union_area, 1e-8)
 
-    # Compute IoU
-    iou = intersection_area / union_area
+            return iou
 
-    return iou
+    except RuntimeWarning as e:
+        print("RuntimeWarning encountered:", e)
+        print("intersection_area:", intersection_area)
+        print("box_area:", box_area)
+        print("boxes_area:", boxes_area)
+        print("union_area:", union_area)
+        print("iou:", iou)
+        return np.zeros_like(iou, 0.0)  # Return NaN for all IoU values
 
 
 def xywh2xyxy(x):
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
     # Convert bounding box (x, y, w, h) to bounding box (x1, y1, x2, y2)
-    y = np.copy(x)
-    y[..., 0] = x[..., 0] - x[..., 2] / 2
-    y[..., 1] = x[..., 1] - x[..., 3] / 2
-    y[..., 2] = x[..., 0] + x[..., 2] / 2
-    y[..., 3] = x[..., 1] + x[..., 3] / 2
+            y = np.copy(x)
+            y[..., 0] = x[..., 0] - x[..., 2] / 2
+            y[..., 1] = x[..., 1] - x[..., 3] / 2
+            y[..., 2] = x[..., 0] + x[..., 2] / 2
+            y[..., 3] = x[..., 1] + x[..., 3] / 2
+    except RuntimeWarning as e:
+        print("y1: ", y[..., 0])
+        print("y1: ", y[..., 1])
+        print("y1: ", y[..., 2])
+        print("y1: ", y[..., 3])
     return y
 
 
