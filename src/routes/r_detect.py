@@ -11,5 +11,5 @@ detection = DetectionModel(MODEL)
 
 @detect_bp.route('/detecting/<int:cam_id>')
 def stream_cam(cam_id):
-    # return Response(detection.gen_detection(cam_id), mimetype='multipart/x-mixed-replace; boundary=frame')
-    return Response(detection.gen_detection(cam_id), mimetype='text/event-stream')
+    return Response(detection.gen_detection2(cam_id), mimetype='multipart/x-mixed-replace; boundary=frame')
+    # return Response(detection.gen_detection(cam_id), mimetype='text/event-stream')
