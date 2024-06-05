@@ -2,7 +2,7 @@ import tensorrt as trt
 # import pycuda.autoinit  # Needed for managing CUDA context
 import cv2
 import numpy as np
-# import torch
+import time
 import json
 import base64 
 import torch
@@ -164,8 +164,11 @@ class DetectionModel:
             else:
                 # Perform object detection
                 frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
+                start_time = time.time()
                 boxes, scores, class_ids = self(frame) # Bạn cần định nghĩa hàm self(frame) để thực hiện phát hiện đối tượng
-                
+                end_time = time.time()
+                real_fps = round(1/(end_time - start_time), 1)
+                print(f'vid {cam_id} fps: ', real_fps)
                 if len(boxes):
                     boxes = boxes.tolist()
                     scores = scores.tolist()
