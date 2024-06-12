@@ -1,24 +1,26 @@
-import requests
-import json
-import base64
-from PIL import Image
-from io import BytesIO
+import pika
 
-url = 'http://localhost:5001/detecting/1'
+# Địa chỉ IP của máy Windows chạy RabbitMQ
+rabbitmq_host = '192.168.1.1'
 
-response = requests.get(url, stream=True)
+rabbitmq_username = 'guest'
+rabbitmq_password = 'guest'
 
-if response.status_code == 200:
-    for line in response.iter_lines():
-        if line:
-            data = json.loads(line.decode('utf-8').replace('data: ', ''))
-            info = data['boxes']
-            image_data = base64.b64decode(data['img'])
+parameters = pika.ConnectionParameters(host=rabbitmq_host)
 
-            print("Received info:", info)
+# Kết nối tới RabbitMQ server
+connection = pika.BlockingConnection(parameters)
+channel = connection.channel()
 
-            # Lưu và mở ảnh
-            img = Image.open(BytesIO(image_data))
-            img.show()
-else:
-    print(f"Failed to connect, status code: {response.status_code}")
+# Khai báo một queue (nếu queue chưa tồn tại, nó sẽ được tạo)
+channel.queue_declare(queue='test_queue')
+
+# Gửi một tin nhắn
+message = 'Hello from Jetson!'
+channel.basic_publish(exchange='',
+                      routing_key='test_queue',
+                      body=message)
+print(f" [x] Sent '{message}'")
+
+# Đóng kết nối
+connection.close()

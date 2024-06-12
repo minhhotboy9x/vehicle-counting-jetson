@@ -178,6 +178,7 @@ class DetectionModel:
                     class_ids = class_ids.tolist()
 
                 # Convert frame to JPEG format
+                frame = cv2.resize(frame, (FRAME_WIDTH // 2, FRAME_HEIGHT // 2))
                 ret, buffer = cv2.imencode('.jpeg', frame)
                 frame_data = base64.b64encode(buffer).decode('utf-8')
 
@@ -198,53 +199,6 @@ class DetectionModel:
                 transmission_duration = end_transmission_time - start_transmission_time
                 print(f'transmission_duration: {transmission_duration}')
         cap.release()
-    
-    def gen_detection2(self, cam_id):
-        video_path = f'./imgs/{cam_id}.mp4'
-        cap = cv2.VideoCapture(video_path)
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                cap = cv2.VideoCapture(video_path)
-            else:
-                # Perform object detection
-                frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
-                start_detection_time = time.time()
-                boxes, scores, class_ids = self(frame) # Bạn cần định nghĩa hàm self(frame) để thực hiện phát hiện đối tượng
-                end_detection_time = time.time()
-                real_fps = round(1 / (end_detection_time - start_detection_time), 1)
-                print(f'vid {cam_id} fps: ', real_fps)
-                if len(boxes):
-                    boxes = boxes.tolist()
-                    scores = scores.tolist()
-                    class_ids = class_ids.tolist()
-
-                # Convert frame to JPEG format
-                ret, buffer = cv2.imencode('.jpeg', frame)
-                frame_data = base64.b64encode(buffer).decode('utf-8')
-
-                json_data = json.dumps({
-                    'img': frame_data,
-                    'boxes': boxes,
-                    'scores': scores,
-                    'class_ids': class_ids,
-                })
-
-                # Ghi nhận thời gian trước khi gửi dữ liệu
-                start_transmission_time = time.time()
-
-                yield (b'--frame\r\n'
-                    b'Content-Type: application/json\r\n\r\n' + json_data.encode('utf-8') + b'endpart\r\n')
-
-                # Ghi nhận thời gian sau khi dữ liệu được gửi đi
-                end_transmission_time = time.time()
-                transmission_duration = end_transmission_time - start_transmission_time
-
-                print(f'transmission_duration: {transmission_duration}')
-
-        cap.release()
-    
-                
 
 if __name__ == '__main__':
     model = DetectionModel("model/trt_jetson/yolov8n_relu_FP16.engine")
