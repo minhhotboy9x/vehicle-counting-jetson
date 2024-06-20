@@ -207,7 +207,7 @@ class DetectionModel:
                     class_ids = class_ids.tolist()
 
                 # Convert frame to JPEG format
-                # frame = cv2.resize(frame, (FRAME_WIDTH // 2, FRAME_HEIGHT // 2))
+                frame = cv2.resize(frame, (FRAME_WIDTH // 2, FRAME_HEIGHT // 2))
                 ret, buffer = cv2.imencode('.jpeg', frame)
                 frame_data = base64.b64encode(buffer).decode('utf-8')
 
