@@ -198,7 +198,7 @@ class DetectionModel:
                 boxes, scores, class_ids = self(frame[self.offset[0, 1]: self.offset[1, 1], self.offset[0, 0]: self.offset[1, 0], :])
                 end_detection_time = time.time()
                 real_fps = round(1 / (end_detection_time - start_detection_time), 1)
-                print(f'{os.path.basename(MODEL)} vid {cam_id} fps: ', real_fps)
+                print(f'{os.path.basename(MODEL)} vid {cam_id} fps: ', real_fps) # log model
                 if len(boxes):
                     offset = np.tile(self.offset[0], (boxes.shape[0], 2))
                     boxes += offset
@@ -212,6 +212,7 @@ class DetectionModel:
                 frame_data = base64.b64encode(buffer).decode('utf-8')
 
                 json_data = json.dumps({
+                    'model': os.path.basename(MODEL),
                     'img': frame_data,
                     'boxes': boxes,
                     'scores': scores,

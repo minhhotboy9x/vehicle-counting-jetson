@@ -15,7 +15,7 @@ def crop_points():
     xmax = request.args.get("xmax", FRAME_WIDTH, type=int)
     ymax = request.args.get("ymax", FRAME_HEIGHT, type=int)
     detection.offset = np.array([[xmin, ymin], [xmax, ymax]])
-    print(detection.offset)
+    # print(detection.offset)
     return jsonify({'message': 'sent crop point successful'}), 200
 
 @detect_bp.route('/detecting/<int:cam_id>')
