@@ -169,7 +169,6 @@ class DetectionModel:
         return boxes
     
     def rescale_boxes(self, boxes):
-
         # Rescale boxes to original image dimensions
         # input_shape = np.array([self.input_width, self.input_height, self.input_width, self.input_height])
         # boxes = np.divide(boxes, input_shape, dtype=np.float32)
@@ -181,14 +180,21 @@ class DetectionModel:
         return draw_detections(image, self.boxes, self.scores,
                                self.class_ids, mask_alpha)
     
+    
     def gen_detection(self, cam_id):
         video_path = f'./imgs/{cam_id}.mp4'
         cap = cv2.VideoCapture(video_path)
+        cnt = 0
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 cap = cv2.VideoCapture(video_path)
             else:
+                # drop frame for pseudo realtime
+                cnt = (cnt + 1) % 3
+                if cnt == 0:
+                    continue
+
                 # Perform object detection
                 frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
                 start_detection_time = time.time()
@@ -196,9 +202,11 @@ class DetectionModel:
                 scores = []
                 class_ids = []
                 boxes, scores, class_ids = self(frame[self.offset[0, 1]: self.offset[1, 1], self.offset[0, 0]: self.offset[1, 0], :])
+
                 end_detection_time = time.time()
                 real_fps = round(1 / (end_detection_time - start_detection_time), 1)
                 print(f'{os.path.basename(MODEL)} vid {cam_id} fps: ', real_fps) # log model
+
                 if len(boxes):
                     offset = np.tile(self.offset[0], (boxes.shape[0], 2))
                     boxes += offset
