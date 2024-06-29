@@ -205,7 +205,7 @@ class DetectionModel:
 
                 end_detection_time = time.time()
                 real_fps = round(1 / (end_detection_time - start_detection_time), 1)
-                print(f'{os.path.basename(MODEL)} vid {cam_id} fps: ', real_fps) # log model
+                # print(f'{os.path.basename(MODEL)} vid {cam_id} fps: ', real_fps) # log model
 
                 if len(boxes):
                     offset = np.tile(self.offset[0], (boxes.shape[0], 2))
